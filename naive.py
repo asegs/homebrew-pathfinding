@@ -1,5 +1,12 @@
 import random
 import math
+from enum import Enum
+
+class Direction(Enum):
+    LEFT = (0,-1)
+    UP = (-1,0)
+    RIGHT = (0,1)
+    DOWN = (1,0)
 
 """
 0 means unexplored
@@ -32,6 +39,10 @@ def stack_pop(stack):
     stack.size -= 1
     return new_node.dataval
 
+def get_coords_for_enum(pos,enum_str):
+    mod = Direction[enum_str].value
+    return (pos[0]+mod[0],pos[1]+mod[1])
+
 def generate_maze(width,height,freq):
     maze = []
     for row in range(0,height):
@@ -58,44 +69,54 @@ def code_safe(code):
 def square(n):
     return n * n
 
-def tile_safe(maze,row,col):
+def tile_safe(maze,pos):
     m_height = len(maze)
     m_width = len(maze[0])
-    return (0 <= col < m_width and 0 <= row < m_height) and code_safe(maze[row][col])
+    return (0 <= pos[1] < m_width and 0 <= pos[0] < m_height) and code_safe(maze[pos[0]][pos[1]])
 
-def pythag_distance(r1,c1,r2,c2):
-    return math.sqrt(abs(square(r2-r1)) + abs(square(c2-c1)))
+def pythag_dist(pos1,pos2):
+    return math.sqrt(abs(square(pos2[0]-pos1[0])) + abs(square(pos2[1]-pos1[1])))
 
 
-
-def pick_best_vertex(maze,end,row,col):
-    coord_pairs = []
-    shortest_distance = 0
+def pick_best_vertex(maze,end,pos):
+    terms = ["LEFT","UP","RIGHT","DOWN"]
+    shortest_distance = -1
     has_set_shortest = False
-    coord_idx = 0
-    directions = [0,-1,-1,0,0,1,1,0]
-    for i in range(0,len(directions),2):
-        pair = (row + directions[i],col + directions[i+1])
-        if tile_safe(maze,pair[0],pair[1]):
-            coord_pairs.append(pair)
-    for i,pair in enumerate(coord_pairs):
-        temp_dist = pythag_distance(end[0],end[1],pair[0],pair[1])
-        if not has_set_shortest:
-            shortest_distance = temp_dist
-            has_set_shortest = True
-        else:
-            if temp_dist < shortest_distance:
+    coord_term = False
+    coord_pair = (0,0)
+    for term in terms:
+        pair = get_coords_for_enum(pos,term)
+        if tile_safe(maze,pair):
+            temp_dist = pythag_dist(pos,pair)
+            if not has_set_shortest:
                 shortest_distance = temp_dist
-                coord_idx = i
+                coord_term = term
+                coord_pair = pair
+                has_set_shortest = True
+            elif temp_dist < shortest_distance:
+                shortest_distance = temp_dist
+                coord_term = term
+                coord_pair = pair
     if not has_set_shortest:
-        return False
-    return coord_pairs[coord_idx]
+        return (False,False)
+    return (coord_term,coord_pair)
+        
+    
+
 
 def explore(maze,start,end):
-    print(pick_best_vertex(maze,end,start[0],start[1]))
+    shortest_path = -1
+    found_paths = []
+    pos = Node((start[0],start[1]))
+    current_path = SLinkedList()
+    current_path.headval = pos
+    last_dir = False
+    print(pick_best_vertex(maze,end,start))
+        
+        
 
 
-maze,start,end = generate_maze(10,10,0.25)
+maze,start,end = generate_maze(10,10,0.10)
 explore(maze,start,end)
 display_maze(maze)
 
