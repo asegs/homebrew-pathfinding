@@ -39,8 +39,10 @@ def stack_pop(stack):
     stack.size -= 1
     return new_node.dataval
 
-def get_coords_for_enum(pos,enum_str):
+def get_coords_for_enum(pos,enum_str,backtracing = False):
     mod = Direction[enum_str].value
+    if backtracing:
+        return (pos[0]+mod[0] * -1,pos[1]+mod[1] * -1)
     return (pos[0]+mod[0],pos[1]+mod[1])
 
 def generate_maze(width,height,freq):
@@ -105,19 +107,39 @@ def pick_best_vertex(maze,end,pos):
 
 
 def explore(maze,start,end):
+    ##need directions stack
     shortest_path = -1
     found_paths = []
-    pos = Node((start[0],start[1]))
     current_path = SLinkedList()
-    current_path.headval = pos
+    current_path.headval = Node((start[0],start[1]))
+    pos = (start[0],start[1])
     last_dir = False
-    print(pick_best_vertex(maze,end,start))
+    backtracing = False
+    while pos != end:
+        term,pair = pick_best_vertex(maze,end,pos)
+        if not pair:
+            if pos == start:
+                return found_paths
+            backtracing = True
+            print(pos)
+            maze[pos[0]][pos[1]] = 1
+            pos = get_coords_for_enum(pos,last_dir,True)
+            stack_pop(current_path)
+        else:
+            pos = pair
+            stack_add(current_path,pos)
+            maze[pos[0]][pos[1]] = "*"
+            last_dir = term
+    found_paths.append(current_path)
+    return found_paths
+            
+        
         
         
 
 
 maze,start,end = generate_maze(10,10,0.10)
-explore(maze,start,end)
+stack = explore(maze,start,end)[0]
 display_maze(maze)
 
 
