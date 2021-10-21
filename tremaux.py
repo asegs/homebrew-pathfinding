@@ -11,6 +11,8 @@ import time
 4 means on current path
 """
 
+terms = [(0,-1),(-1,0),(0,1),(1,0)]
+
 class Node:
     def __init__(self,dataval=None):
         self.dataval = dataval
@@ -77,34 +79,29 @@ def square(n):
     return n * n
 
 def tile_safe(maze,pos):
-    m_height = len(maze)
-    m_width = len(maze[0])
-    return (0 <= pos[1] < m_width and 0 <= pos[0] < m_height) and code_safe(maze[pos[0]][pos[1]])
+    return (0 <= pos[1] < len(maze[0]) and 0 <= pos[0] < len(maze)) and code_safe(maze[pos[0]][pos[1]])
 
 def pythag_dist(pos1,pos2):
-    return abs(square(pos2[0]-pos1[0])) + abs(square(pos2[1]-pos1[1]))
+    return square(pos2[0]-pos1[0]) + square(pos2[1]-pos1[1])
 
 
 def pick_best_vertex(maze,end,pos):
-    terms = [(0,-1),(-1,0),(0,1),(1,0)]
     shortest_distance = -1
-    has_set_shortest = False
     coord_term = False
     coord_pair = (0,0)
     for term in terms:
         pair = get_coords_for_enum(pos,term)
         if tile_safe(maze,pair):
             temp_dist = pythag_dist(end,pair)
-            if not has_set_shortest:
+            if shortest_distance == -1:
                 shortest_distance = temp_dist
                 coord_term = term
                 coord_pair = pair
-                has_set_shortest = True
             elif temp_dist < shortest_distance:
                 shortest_distance = temp_dist
                 coord_term = term
                 coord_pair = pair
-    if not has_set_shortest:
+    if shortest_distance == -1:
         return (False,False)
     return (coord_term,coord_pair)
         
@@ -201,8 +198,7 @@ def test(args):
     else:
         solve(w,h,f)
 
-##show path in red
-##run until one has been solved with these parameters
+##possibly could flag each tile with open directions, if returning one is only open direction, auto close (avoid 4 tile safes per backtrace)
 
     
 if __name__ == "__main__":
