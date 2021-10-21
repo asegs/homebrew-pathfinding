@@ -1,13 +1,7 @@
 import random
-import math
-from enum import Enum
 import sys
+import time
 
-class Direction(Enum):
-    LEFT = (0,-1)
-    UP = (-1,0)
-    RIGHT = (0,1)
-    DOWN = (1,0)
 
 """
 0 means unexplored
@@ -40,11 +34,10 @@ def stack_pop(stack):
     stack.size -= 1
     return new_node.dataval
 
-def get_coords_for_enum(pos,enum_str,backtracing = False):
-    mod = Direction[enum_str].value
+def get_coords_for_enum(pos,pair,backtracing = False):
     if backtracing:
-        return (pos[0]+mod[0] * -1,pos[1]+mod[1] * -1)
-    return (pos[0]+mod[0],pos[1]+mod[1])
+        return (pos[0]+pair[0] * -1,pos[1]+pair[1] * -1)
+    return (pos[0]+pair[0],pos[1]+pair[1])
 
 def generate_maze(width,height,freq):
     maze = []
@@ -89,11 +82,11 @@ def tile_safe(maze,pos):
     return (0 <= pos[1] < m_width and 0 <= pos[0] < m_height) and code_safe(maze[pos[0]][pos[1]])
 
 def pythag_dist(pos1,pos2):
-    return math.sqrt(abs(square(pos2[0]-pos1[0])) + abs(square(pos2[1]-pos1[1])))
+    return abs(square(pos2[0]-pos1[0])) + abs(square(pos2[1]-pos1[1]))
 
 
 def pick_best_vertex(maze,end,pos):
-    terms = ["LEFT","UP","RIGHT","DOWN"]
+    terms = [(0,-1),(-1,0),(0,1),(1,0)]
     shortest_distance = -1
     has_set_shortest = False
     coord_term = False
@@ -119,6 +112,7 @@ def pick_best_vertex(maze,end,pos):
 
 
 def explore(maze,start,end):
+    t = time.time()
     shortest_path = -1
     current_path = SLinkedList()
     current_path.headval = Node((start[0],start[1]))
@@ -139,6 +133,8 @@ def explore(maze,start,end):
             stack_add(current_path,pos)
             stack_add(last_directions,term)
             if maze[pos[0]][pos[1]] == 3:
+                f = time.time()
+                print((f-t) * 1000)
                 return current_path
             maze[pos[0]][pos[1]] = 4
             backtracing = False
