@@ -1,6 +1,7 @@
 import random
 import math
 from enum import Enum
+import sys
 
 class Direction(Enum):
     LEFT = (0,-1)
@@ -117,7 +118,7 @@ def explore(maze,start,end):
         term,pair = pick_best_vertex(maze,end,pos)
         if not pair:
             if pos == start:
-                return found_paths
+                return False
             backtracing = True
             maze[pos[0]][pos[1]] = 1
             pos = get_coords_for_enum(pos,stack_pop(last_directions),True)
@@ -126,6 +127,9 @@ def explore(maze,start,end):
             pos = pair
             stack_add(current_path,pos)
             stack_add(last_directions,term)
+            if maze[pos[0]][pos[1]] == 3:
+                return current_path
+            maze[pos[0]][pos[1]] = 4
             backtracing = False
     return current_path
 
@@ -137,13 +141,35 @@ def draw_path(maze,stack):
         maze[node[0]][node[1]] = 8
         
         
-        
+def solve(width,height,freq):
+    maze,start,end = generate_maze(width,height,freq)
+    display_maze(maze)
+    stack = explore(maze,start,end)
+    if not stack:
+        print("____________________________")
+        print()
+        print("Unsolvable maze.")
+        return
+    draw_path(maze,stack)
+    print("____________________________")
+    print()
+    display_maze(maze)
+
+def test(args):
+    w = int(args[1])
+    h = int(args[2])
+    f = float(args[3])/100.0
+    if len(args) == 5:
+        for i in range(0,int(args[4])):
+            solve(w,h,f)
+    else:
+        solve(w,h,f)
+
+##show path in red
+##run until one has been solved with these parameters
+
+    
+if __name__ == "__main__":
+   test(sys.argv)
 
 
-maze,start,end = generate_maze(10,10,0.10)
-display_maze(maze)
-print("____________________________")
-print()
-stack = explore(maze,start,end)
-draw_path(maze,stack)
-display_maze(maze)
