@@ -61,9 +61,20 @@ def generate_maze(width,height,freq):
     return (maze,start,end)
 
 
-def display_maze(maze):
+def display_maze(maze,show_path = True):
     for row in maze:
-        print(row)
+        for col in row:
+            if col == 0 or ((not show_path) and col == 4):
+                print_normal(' ')
+            elif col == 1:
+                print_black(' ')
+            elif col == 2:
+                print_green(' ')
+            elif col == 3:
+                print_blue(' ')
+            else:
+                print_red(' ')
+        print()
 
 
 def code_safe(code):
@@ -134,34 +145,63 @@ def explore(maze,start,end):
     return current_path
 
 
-def draw_path(maze,stack):
+
+
+def print_red(txt):
+    print("\033[48;2;255;0;0m" + txt +"\033[0m",end='')
+
+def print_blue(txt):
+    print("\033[48;2;0;208;233m" + txt +"\033[0m",end='')
+
+def print_green(txt):
+    print("\033[48;2;9;152;13m" + txt +"\033[0m",end='')
+
+def print_black(txt):
+    print("\033[48;2;0;0;0m" + txt +"\033[0m",end='')
+
+def print_normal(txt):
+    print("\033[48;2;255;255;255m" + txt +"\033[0m",end='')
+
+def display_path(maze,stack):
     stack_pop(stack)
     while stack.size > 0:
         node = stack_pop(stack)
         maze[node[0]][node[1]] = 8
-        
-        
-def solve(width,height,freq):
-    maze,start,end = generate_maze(width,height,freq)
     display_maze(maze)
-    stack = explore(maze,start,end)
-    if not stack:
+                
+        
+def solve(width,height,freq,hide_unsolvable = False):
+    maze,start,end = generate_maze(width,height,freq)
+    if not hide_unsolvable:
+        display_maze(maze)
         print("____________________________")
         print()
-        print("Unsolvable maze.")
-        return
-    draw_path(maze,stack)
-    print("____________________________")
-    print()
-    display_maze(maze)
-
+        
+    stack = explore(maze,start,end)
+    if not stack:
+        if not hide_unsolvable:
+            print("Unsolvable maze.")
+        return False
+    
+    if hide_unsolvable:
+        display_maze(maze,False)
+        print("____________________________")
+        print()
+    display_path(maze,stack)
+    return True
+    
 def test(args):
     w = int(args[1])
     h = int(args[2])
     f = float(args[3])/100.0
     if len(args) == 5:
-        for i in range(0,int(args[4])):
-            solve(w,h,f)
+        if args[4] == "s":
+            solved = solve(w,h,f,True)
+            while not solved:
+                solved = solve(w,h,f,True)
+        else:
+            for i in range(0,int(args[4])):
+                solve(w,h,f)
     else:
         solve(w,h,f)
 
