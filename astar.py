@@ -47,8 +47,11 @@ def take_closest_helper(parent):
             parent_root = parent.graph_parent
             parent_root.left = parent.right
             parent.right.graph_parent = parent_root
+        else:
+            parent.graph_parent.left = None
+            
         return parent
-    if parent.left:
+    else:
         return take_closest_helper(parent.left)
 def pop(queue):
     if not queue.head:
