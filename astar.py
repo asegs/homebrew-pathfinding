@@ -121,16 +121,16 @@ def get_adjacent_valid_tiles(maze,pos):
     return adjacent_tiles
 
 def unwrap_path(end):
-    path = [0] * end.arrival
+    path = [0] * (end.arrival + 1)
     while end:
         path[end.arrival] = (end.row,end.col)
-        end = end.parent
+        end = end.path_parent
     return path
 
 def astar(maze,start,end):
     queue = PriorityQueue()
-    start = Node(None,0,pythag_distance(start,end),start[0],start[1])
-    queue.head = start
+    s = Node(None,0,pythag_distance(start,end),start[0],start[1])
+    queue.head = s
     while queue.head:
         position = pop(queue)
         coords = (position.row,position.col)
@@ -140,9 +140,24 @@ def astar(maze,start,end):
         maze[position.row][position.col] = (maze_data[0],True)
         adjacent = get_adjacent_valid_tiles(maze,coords)
         for tile in adjacent:
-            node = Node(position,position.arrival+1,pythag_distance(coords,end),coords[0],coords[1])
+            node = Node(position,position.arrival+1,pythag_distance(tile,end),tile[0],tile[1])
             insert(queue,node)
     return None
+
+def print_red(txt):
+    print("\033[48;2;255;0;0m" + txt +"\033[0m",end='')
+
+def print_blue(txt):
+    print("\033[48;2;0;208;233m" + txt +"\033[0m",end='')
+
+def print_green(txt):
+    print("\033[48;2;9;152;13m" + txt +"\033[0m",end='')
+
+def print_black(txt):
+    print("\033[48;2;0;0;0m" + txt +"\033[0m",end='')
+
+def print_normal(txt):
+    print("\033[48;2;255;255;255m" + txt +"\033[0m",end='')
 
 maze,start,end = generate_maze(10,10,0.2)
 print(astar(maze,start,end))
