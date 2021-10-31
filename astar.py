@@ -26,7 +26,7 @@ terms = [(0,-1),(-1,0),(0,1),(1,0)]
 
 def insert_node_helper(parent,node):
     if parent.matches(node):
-        if node.estimate < parent.estimate():
+        if node.estimate() < parent.estimate():
             parent.path_parent = node.path_parent
             parent.arrival = node.arrival
     if node.estimate() >= parent.estimate():
@@ -34,16 +34,19 @@ def insert_node_helper(parent,node):
             node.graph_parent = parent
             parent.right = node
             return
-        insert_node(parent.right,node)
+        insert_node_helper(parent.right,node)
     else:
         if not parent.left:
             node.graph_parent = parent
             parent.left = node
             return
-        insert_node(parent.left,node)
+        insert_node_helper(parent.left,node)
 
 def insert(queue,node):
-    insert_node_helper(queue.head,node)
+    if not queue.head:
+        queue.head = node
+    else:
+        insert_node_helper(queue.head,node)
 
 def take_closest_helper(parent):
     if not parent.left:
