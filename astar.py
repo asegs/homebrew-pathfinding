@@ -1,3 +1,5 @@
+import random
+
 class Node:
     def __init__(self,path_parent,arrival,remaining,row,col):
         self.path_parent = path_parent
@@ -19,6 +21,8 @@ class PriorityQueue:
     def __init__(self):
         self.head = None
 
+
+terms = [(0,-1),(-1,0),(0,1),(1,0)]
 
 def insert_node_helper(parent,node):
     if parent.matches(node):
@@ -78,18 +82,67 @@ def print_tree(queue,depth):
     if queue.right:
         print_tree(queue.right,depth+1)
 
-p = PriorityQueue()
+##maze tracks type,visited
+def generate_maze(width,height,freq):
+    maze = []
+    for row in range(0,height):
+        row = [(0,False)] * width
+        for col in range(0,width):
+            if random.random() < freq:
+                row[col] = (1,True)
+        maze.append(row)
+    start = (random.randint(0,height-1),random.randint(0,width-1))
+    maze[start[0]][start[1]] = (2,True)
+    end = (random.randint(0,height-1),random.randint(0,width-1))
+    maze[end[0]][end[1]] = (3,False)
+    return (maze,start,end)
 
-n = Node(None,0,10,4,4)
+def square(n):
+    return n*n
 
-c = Node(n,1,9,5,5)
+def pythag_distance(pos1,pos2):
+    return square(pos2[0]-pos1[0]) + square(pos2[1]-pos1[1])
 
-b = Node(n,1,6,3,3)
+def tile_good(maze,pos):
+    return (0 <= pos[1] < len(maze[0]) and 0 <= pos[0] < len(maze)) and not maze[pos[0]][pos[1]][1]
 
-p.head = n
+def get_coords_for_pair(pos,pair):
+    return (pos[0]+pair[0],pos[1]+pair[1])
 
-insert(p,c)
-insert(p,b)
-print_tree(p.head,0)
-print(pop(p))
-print_tree(p.head,0)
+def get_adjacent_valid_tiles(maze,pos):
+    adjacent_tiles = []
+    for pair in terms:
+        new_coord = get_coords_for_pair(pos,pair)
+        if tile_good(maze,new_coord):
+            adjacent_tiles.append(new_coord)
+    return adjacent_tiles
+
+def unwrap_path(end):
+    path = [0] * end.arrival
+    while end:
+        path[end.arrival] = (end.row,end.col)
+        end = end.parent
+    return path
+
+def astar(maze,start,end):
+    queue = PriorityQueue()
+    start = Node(None,0,pythag_distance(start,end),start[0],start[1])
+    queue.head = start
+    while queue.head:
+        position = pop(queue)
+        coords = (position.row,position.col)
+        if coords == end:
+            return unwrap_path(position)
+        maze_data = maze[position.row][position.col]
+        maze[position.row][position.col] = (maze_data[0],True)
+        adjacent = get_adjacent_valid_tiles(maze,coords)
+        for tile in adjacent:
+            node = Node(position,position.arrival+1,pythag_distance(coords,end),coords[0],coords[1])
+            insert(queue,node)
+    return None
+
+maze,start,end = generate_maze(10,10,0.2)
+print(astar(maze,start,end))
+
+    
+    
