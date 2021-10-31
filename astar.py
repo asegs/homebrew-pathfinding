@@ -1,4 +1,5 @@
 import random
+import time
 
 class Node:
     def __init__(self,path_parent,arrival,remaining,row,col):
@@ -128,6 +129,8 @@ def unwrap_path(end):
     return path
 
 def astar(maze,start,end):
+    added = []
+    st = time.time()
     queue = PriorityQueue()
     s = Node(None,0,pythag_distance(start,end),start[0],start[1])
     queue.head = s
@@ -135,17 +138,23 @@ def astar(maze,start,end):
         position = pop(queue)
         coords = (position.row,position.col)
         if coords == end:
-            return unwrap_path(position)
+            ft = time.time()
+            print(str((ft - st) * 1000) + "ms")
+            return (unwrap_path(position),added)
         maze_data = maze[position.row][position.col]
         maze[position.row][position.col] = (maze_data[0],True)
         adjacent = get_adjacent_valid_tiles(maze,coords)
         for tile in adjacent:
             node = Node(position,position.arrival+1,pythag_distance(tile,end),tile[0],tile[1])
             insert(queue,node)
-    return None
+            added.append(tile)
+    return (None,None)
 
 def print_red(txt):
     print("\033[48;2;255;0;0m" + txt +"\033[0m",end='')
+
+def print_faint(txt):
+    print("\033[48;2;160;60;100m" + txt +"\033[0m",end='')
 
 def print_blue(txt):
     print("\033[48;2;0;208;233m" + txt +"\033[0m",end='')
@@ -159,9 +168,12 @@ def print_black(txt):
 def print_normal(txt):
     print("\033[48;2;255;255;255m" + txt +"\033[0m",end='')
 
-def display(maze,path):
+def display(maze,path,added):
+    if path == None:
+        print("Impossible to solve.")
+        return
     for i,row in enumerate(maze):
-        for b,col in enumerate(maze):
+        for b,col in enumerate(row):
             item = maze[i][b]
             if item[0] == 2:
                 print_green(' ')
@@ -169,16 +181,19 @@ def display(maze,path):
                 print_blue(' ')
             elif (i,b) in path:
                 print_red(' ')
+            elif (i,b) in added:
+                print_faint(' ')
             elif item[0] == 0:
                 print_normal(' ')
             elif item[0] == 1:
                 print_black(' ')
-        print('\n')
+        print()
 
 
 
-maze,start,end = generate_maze(10,10,0.2)
-path = astar(maze,start,end)
-display(maze,path)
+maze,start,end = generate_maze(240,65,0.3)
+
+path,added = astar(maze,start,end)
+display(maze,path,added)
     
     
