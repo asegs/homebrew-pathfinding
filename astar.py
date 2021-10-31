@@ -159,8 +159,26 @@ def print_black(txt):
 def print_normal(txt):
     print("\033[48;2;255;255;255m" + txt +"\033[0m",end='')
 
-maze,start,end = generate_maze(10,10,0.2)
-print(astar(maze,start,end))
+def display(maze,path):
+    for i,row in enumerate(maze):
+        for b,col in enumerate(maze):
+            item = maze[i][b]
+            if item[0] == 2:
+                print_green(' ')
+            elif item[0] == 3:
+                print_blue(' ')
+            elif (i,b) in path:
+                print_red(' ')
+            elif item[0] == 0:
+                print_normal(' ')
+            elif item[0] == 1:
+                print_black(' ')
+        print('\n')
 
+
+
+maze,start,end = generate_maze(10,10,0.2)
+path = astar(maze,start,end)
+display(maze,path)
     
     
