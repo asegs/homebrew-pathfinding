@@ -5,6 +5,8 @@ erosions = 10
 min_to_erode = 2
 max_to_erode = 4
 
+diag = False
+
 class Node:
     def __init__(self,path_parent,arrival,remaining,row,col):
         self.path_parent = path_parent
@@ -28,7 +30,7 @@ class PriorityQueue:
 
 
 terms = [(0,-1),(-1,0),(0,1),(1,0)]
-diagTerms = [(0,-1),(-1,0),(0,1),(1,0),(-1,-1),(-1,1),(1,-1),(1,1)]
+diag_terms = [(0,-1),(-1,0),(0,1),(1,0),(-1,-1),(-1,1),(1,-1),(1,1)]
 
 def insert_node_helper(parent,node):
     if parent.matches(node):
@@ -96,7 +98,7 @@ def biotic(maze):
     for row,wholeRow in enumerate(maze):
         for col,item in enumerate(wholeRow):
             surroundingWalls = 0
-            for term in diagTerms:
+            for term in diag_terms:
                 if not tile_good(maze,get_coords_for_pair((row,col),term)):
                     surroundingWalls += 1
             if surroundingWalls > max_to_erode:
@@ -120,7 +122,7 @@ def generate_maze(width,height,freq):
         biotic(maze)
         
     start = (random.randint(0,height-1),random.randint(0,width-1))
-    maze[start[0]][start[1]] = (2,True)
+    maze[start[0]][start[1]] = (2,False)
     end = (random.randint(0,height-1),random.randint(0,width-1))
     maze[end[0]][end[1]] = (3,False)
     return (maze,start,end)
@@ -140,7 +142,10 @@ def get_coords_for_pair(pos,pair):
 
 def get_adjacent_valid_tiles(maze,pos):
     adjacent_tiles = []
-    for pair in terms:
+    local_terms = terms
+    if diag:
+        local_terms = diag_terms
+    for pair in local_terms:
         new_coord = get_coords_for_pair(pos,pair)
         if tile_good(maze,new_coord):
             adjacent_tiles.append(new_coord)
@@ -149,7 +154,6 @@ def get_adjacent_valid_tiles(maze,pos):
 def unwrap_path(end):
     path = [0] * (end.arrival + 1)
     while end:
-        print(end.arrival)
         path[end.arrival] = (end.row,end.col)
         end = end.path_parent
     return path
@@ -162,18 +166,22 @@ def astar(maze,start,end):
     queue.head = s
     while queue.head:
         position = pop(queue)
+        maze_data = maze[position.row][position.col]
         coords = (position.row,position.col)
+        if maze_data[1]:
+            continue
         if coords == end:
             ft = time.time()
             print(str((ft - st) * 1000) + "ms")
             return (unwrap_path(position),added)
-        maze_data = maze[position.row][position.col]
         maze[position.row][position.col] = (maze_data[0],True)
         adjacent = get_adjacent_valid_tiles(maze,coords)
         for tile in adjacent:
             node = Node(position,position.arrival+1,pythag_distance(tile,end),tile[0],tile[1])
             insert(queue,node)
             added.append(tile)
+    ft = time.time()
+    print(str((ft - st) * 1000) + "ms")
     return (None,None)
 
 def print_red(txt):
@@ -218,7 +226,7 @@ def display(maze,path,added):
 
 
 maze,start,end = generate_maze(180,40,0.3)
-
+display(maze,[],[])
 path,added = astar(maze,start,end)
 display(maze,path,added)
     
